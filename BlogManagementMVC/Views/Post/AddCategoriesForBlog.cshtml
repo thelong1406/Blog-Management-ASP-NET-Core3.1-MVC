@@ -1,0 +1,53 @@
+﻿@using DataAccess.Domain
+<div class="container">
+    <h1 class="oleez-page-title wow fadeInUp">Select new post's categories</h1>
+    <div class="row">
+        <div class="col-md-12">
+            @if (ViewBag.ExceptionDetail != null)
+            {
+                <span class="text-danger">@ViewBag.ExceptionDetail</span>
+            }
+
+            <div class="d-flex align-content-center flex-wrap">
+                @foreach (Category item in (List<Category>)ViewBag.CategoriesSelect)
+                {
+                    <div class="card m-2">
+                        <div class="card-body rounded">
+                            <div class="custom-control custom-checkbox">
+                                <input class="custom-control-input categoryAdded" type="checkbox" id="@item.Id" value="@item.Id" />
+                                <label class="custom-control-label" for="@item.Id">@item.Title</label>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <form asp-action="AddCategoriesForBlog" id="AddCategoriesForm" method="post">
+                <form asp-action="AddTagsForBlog" method="post" id="AddTagForm">
+                    <input id="Id" name="Id" value="@ViewBag.PostId" hidden="hidden" type="number" />
+                    <!--For each checked checkbox will append an element input to here-->
+                </form>
+            </form>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary btn-lg btn-block" id="submit-btn">Add these categories!</button>
+                <a asp-action="AddTagsForBlog" asp-route-id="@ViewBag.PostId" class="btn btn-outline-info btn-lg btn-block">Go to add tags</a>
+                <a asp-action="Details" asp-route-postId="@ViewBag.PostId" class="btn btn-outline-secondary btn-lg btn-block">Skip all</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $('#submit-btn')
+    .click(function(e){
+        $("input:checkbox[type=checkbox]:checked")
+            .each(function()
+            {
+            $('#AddCategoriesForm')
+                .append("<input id='categoriesId' name ='categoriesId' value=" + Number($(this).val()) + " hidden='hidden' type='number' />");
+            console.log(Number($(this).val()));
+            }); //End each
+        $('#AddCategoriesForm').submit();
+    });
+
+</script>

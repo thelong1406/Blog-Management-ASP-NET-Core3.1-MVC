@@ -1,0 +1,630 @@
+﻿@using Common.Constants
+@using MapModels.ViewModels
+@model MapModels.ViewModels.PostVM.PostDetailVM
+@using Microsoft.AspNetCore.Identity
+@using DataAccess.Domain
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@{
+    ViewData["Title"] = @Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    bool userLogined = SignInManager.IsSignedIn(User);
+    bool adminLogined = await UserManager.IsInRoleAsync(UserManager.GetUserAsync(User).Result, Roles.Administrator);
+    string userId = userLogined ? UserManager.GetUserAsync(User).Result.Id : "";
+
+    //list use to draw comment tree
+    List<long> alreadyShowComments = new List<long>();
+}
+
+<!--TinyMCE config-->
+<script src="https://cdn.tiny.cloud/1/apriqfhqbc9aqsm8233qtq2pno04fgouj36ijdsr9nvhstqt/tinymce/5/jquery.tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/apriqfhqbc9aqsm8233qtq2pno04fgouj36ijdsr9nvhstqt/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+    tinymce.init({
+        selector: '#Content',
+        //skin_url: "../../Scripts/tinymce/skins/ui/KM LIBRARY",
+        //content_css: "../../Scripts/tinymce/skins/content/KM LIBRARY",
+        plugins: 'advlist anchor autolink autosave autoresize charmap code codesample directionality emoticons fullscreen help hr image imagetools importcss insertdatetime link lists media nonbreaking noneditable pagebreak paste preview print save searchreplace tabfocus table textpattern toc visualblocks visualchars wordcount',
+        toolbar: 'undo redo styleselect | bullist numlist | outdent indent | media table | forecolor backcolor | bold italic underline | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect ',
+        toolbar_mode: 'floating',
+        tinycomments_mode: 'embedded',
+        tinycomments_author: 'Author name',
+    });
+</script>
+<!--TinyMCE config-->
+<link rel="stylesheet" href="~/css/route/client/post/postDetail.css" />
+
+<main class="blog-post-single">
+    <div class="container">
+        @if ((userLogined && userId == Model.UserId) || adminLogined)
+        {
+            <!--If current user is author, these button below for CRUD action will appear-->
+
+            <div style="position: fixed; z-index: 2; right: 2vw; bottom: 2vh; display: grid">
+                <a
+                class="btn btn-outline-secondary m-1"
+                asp-action="Create"
+                asp-route-parentId="@Model.PostId"
+                data-toggle="tooltip"
+                data-placement="left"
+                title="Add sub blog">
+                    <i class="fa-solid fa-plus"></i>
+                </a>
+                    
+                <a
+                class="btn btn-outline-secondary m-1"
+                asp-action="Edit"
+                asp-route-id="@Model.PostId"
+                data-toggle="tooltip"
+                data-placement="left"
+                title="Edit this blog">
+                    <i class="fa-solid fa-file-pen"></i>
+                </a>
+
+                <button
+                id="UnpublishedPostBtn"
+                class="btn btn-outline-secondary m-1"
+                data-toggle="tooltip"
+                data-placement="left"
+                title="Unpublished this blog">
+                    @if (Model.Published)
+                    {
+                        <i class="fa-solid fa-eye-slash"></i>
+                    }
+                    else
+                    {
+                        <i class="fa-solid fa-eye"></i>
+                    }
+                </button>
+
+                <button
+                id="DeletePostBtn"
+                class="btn btn-outline-secondary m-1"
+                data-toggle="tooltip"
+                data-placement="left"
+                title="Deleted this blog">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        }
+        <!--If current user is author, these button above for CRUD action will appear-->
+
+
+        <h1 class="post-title wow fadeInUp">@Html.DisplayFor(model => model.Title)</h1>
+        @if (!Model.Published)
+        {   
+            <span class="badge badge-secondary">Unpublished</span>
+        }
+        @if (Model.IsDeleted)
+        {
+            <span class="badge badge-danger">Deleted</span>
+        }
+        <div class="row">
+            <div class="col-md-8 blog-post-wrapper">
+                <!--Blog Content-->
+                <div class="post-header wow fadeInUp">
+                    <img src="data:image/*;base64,@(Convert.ToBase64String(Model.Thumbnail))" alt="Blog thumbnail" class="post-featured-image">
+                    <div class="row">
+                        <!--Date published-->
+                        <div class="col-md-4 text-secondary">
+                            <p class="post-date">
+                                @Html.DisplayNameFor(model => model.PublishedAt): @Html.DisplayFor(model => model.PublishedAt)
+                            </p>
+                        </div>
+                        <!--Time to read-->
+                        <div class="col-md-4 text-secondary">
+                            <p class="post-date ml-auto text-center">
+                                @Html.DisplayNameFor(model => model.MinutesSpentForReading): @Html.DisplayFor(model => model.MinutesSpentForReading) <span> minutes</span>
+                            </p>
+                        </div>
+                        <!--Vote-->
+                        <div class="col-md-4 text-center justify-content-center">
+                            <div class="rate">
+                                @if (Model.Votes.Count() > 0)
+                                {
+                                    double totalVote = (double)Model.Votes.Count();
+                                    <p class="text-secondary ">
+                                        (
+                                        <span>Rating: </span>
+                                        @((double)Model.Votes.Sum(vote => vote.Rate) / totalVote)<span>/5. </span>
+                                        Total:
+                                        @if (totalVote > 1)
+                                        {
+                                            <span>@totalVote votes</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@totalVote vote</span>
+                                        }
+                                        )
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="text-secondary ">(0 vote)</p>
+                                }
+                                <input type="radio" id="star5" name="rate" value="5" class="radio-rate" />
+                                <label for="star5" title="text">5 stars</label>
+                                <input type="radio" id="star4" name="rate" value="4" class="radio-rate" />
+                                <label for="star4" title="text">4 stars</label>
+                                <input type="radio" id="star3" name="rate" value="3" class="radio-rate" />
+                                <label for="star3" title="text">3 stars</label>
+                                <input type="radio" id="star2" name="rate" value="2" class="radio-rate" />
+                                <label for="star2" title="text">2 stars</label>
+                                <input type="radio" id="star1" name="rate" value="1" class="radio-rate" />
+                                <label for="star1" title="text">1 star</label>
+                            </div>
+                        </div>
+                        <!--Vote-->
+                    </div>
+                </div>
+
+                <div class="post-content wow fadeInUp">
+                    <!--Model content is here-->
+                    <div class="blog-detail-content">
+                        @Html.Raw(Model.Content)
+                    </div>
+                </div>
+                <!--Blog Content-->
+                @*<div class="post-tags wow fadeInUp">
+                    <a href="#!" class="post-tag">Design Studio</a>
+                    <a href="#!" class="post-tag">Creative Design</a>
+                    </div>*@
+                <!--Navigation post-->
+                <div class="post-navigation wow fadeInUp">
+                    <button class="btn prev-post"> Prev Post</button>
+                    <button class="btn next-post"> Next Post</button>
+                </div>
+                <!--Navigation post-->
+
+            </div>
+            <!--Right collumn-->
+            <div class="col-md-4">
+                <div class="sidebar-widget wow fadeInUp">
+                    <!--Author information-->
+                    <div class="sidebar-widget wow fadeInUp text-center">
+                        <h4 class="widget-title">@Html.DisplayNameFor(Model => Model.User)</h4>
+                        <div class="widget-content">
+                            @if(Model.User.Avatar != null || Model.User.Avatar.Length > 0)
+                            {
+                                <img class="img-thumbnail rounded-circle mb-3"
+                                    style="width: 200px; height: 200px; object-fit:cover; object-position:center;"
+                                    src="data:image/*;base64,@(Convert.ToBase64String(Model.User.Avatar))" />
+                            }
+                            else
+                            {
+                                <img class="img-thumbnail rounded-circle mb-3"
+                                    style="width: 200px; height: 200px; object-fit:cover; object-position:center;"
+                                    src="~/ImageDefault/UserAvatar/user_avatar_default.png" />
+                            }
+
+                            <h5 class="widget-title">
+                                @Html.DisplayFor(Model => Model.User.FirstName)
+                                @Html.DisplayFor(Model => Model.User.MiddleName)
+                                @Html.DisplayFor(Model => Model.User.LastName)
+                            </h5>
+
+                            <div class="p-3 mb-3 bg-light rounded"><i>@Html.DisplayFor(Model => Model.User.Intro)</i></div>
+                            <p class="text-primary"><i class="fas fa-at"></i> @Html.DisplayFor(Model => Model.User.Email)</p>
+                        </div>
+                    </div>
+                    <br />
+                    <h5 class="widget-title">@Html.DisplayNameFor(Model => Model.PostTags)</h5>
+                    <div class="widget-content">
+                        @foreach (PostTagVM item in Model.PostTags)
+                        {
+                            <a href="#" class="post-tag">@item.Tag.Title</a>
+                        }
+                    </div>
+                    <br />
+                    <h5 class="widget-title">@Html.DisplayNameFor(Model => Model.PostCategories)</h5>
+                    <div class="widget-content">
+
+                        @foreach (PostCategoryVM item in Model.PostCategories)
+                        {
+                            <a href="#" class="post-tag">@item.Category.Title</a>
+                        }
+                    </div>
+                </div>
+                <div class="sidebar-widget wow fadeInUp">
+                    <h5 class="widget-title">Share</h5>
+                    <div class="widget-content">
+                        <nav class="social-links">
+                            <a href="#!">Fb</a>
+                            <a href="#!">Tw</a>
+                            <a href="#!">In</a>
+                            <a href="#!">Be</a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!--List gallery of image-->
+                @*<div class="sidebar-widget wow fadeInUp">
+                    <h5 class="widget-title">Gallery</h5>
+                    </div>*@
+            </div>
+            <!--Right collumn-->
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <!--Comment Zone-->
+                        @if (userLogined)
+                        {
+                            <div class="comment-section wow fadeInUp">
+                                <h5 class="section-title" id="section-title">Leave a Comment</h5>
+                                <div class="media">
+                                    @if (UserManager.GetUserAsync(User).Result.Avatar != null)
+                                    {
+                                        <img class=" mr-3" src="data:image/*;base64,@(Convert.ToBase64String(UserManager.GetUserAsync(User).Result.Avatar))" alt="" />
+                                    }
+                                    else
+                                    {
+                                        <img class=" mr-3" src="~/ImageDefault/UserAvatar/user_avatar_default.png" alt="" />
+                                    }
+                                    <div class="media-body">
+                                        <form class="oleez-comment-form">
+                                            <div class="row">
+                                                <div class="input-group m-3">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text" id="basic-addon1">Title</span>
+                                                    </div>
+                                                    <input type="text" maxlength="100" class="form-control" id="commentTitle" name="commentTitle" />
+                                                </div>
+
+                                            </div>
+                                            <div class="row">
+                                                <div class="form-group col-md-12">
+                                                    <label for="Content">Comment content</label>
+                                                    <textarea id="Content" name="Content" rows="7" class="oleez-textarea"></textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="form-group col-md-12">
+                                                    <!--Reply user commented name is here-->
+                                                <span id="commentFormLastRow"></span>
+                                                    <button type="button" class="btn btn-primary float-right" id="comment-btn">Comment</button>
+                                                </div>
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <blockquote class="blockquote">
+                                <p class="mb-0">Let login to write how you feel about this blog!</p>
+                                <footer class="blockquote-footer"><a class="btn btn-outline-primary" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a></footer>
+                            </blockquote>
+                        }
+                        <!--Comment Zone-->
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <!--List Comment Zone-->
+                        @if (Model.PostCategories.Count() == 0)
+                        {
+                            <div class="comment-section wow fadeInUp">
+                                <h5 class="section-title">No one comment yet, let's be the first!</h5>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="comment-section wow fadeInUp" id="list-comment-container">
+                                <h5 class="section-title">Others Comment</h5>
+                                @{
+                                    ShowComments(Model.PostComments);
+                                    //This function void is in the end of this file
+                                }
+                            </div>
+                        }
+                        <!--List Comment Zone-->
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</main>
+
+@section scripts{
+    @* jquery to change status of Blog*@
+    <script>
+        $('#UnpublishedPostBtn').click(
+            function (e){
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SwitchPublishedPostStatus", "Post")',
+                    data: {
+                        postId: @Model.PostId
+                    },
+                    dataType: 'json',
+                    success: function (result) {
+                        alert(result);
+                    },
+                    error: function (result) {
+                        alert(result);
+                    }
+                });
+            }
+        );
+
+        $('#DeletePostBtn').click(
+            function(e){
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SwitchDeletePostStatus", "Post")',
+                    data: {
+                        postId: @Model.PostId
+                    },
+                    dataType: 'json',
+                    success: function (result) {
+                       alert(result);
+                    },
+                    error: function (result) {
+                        alert(result);
+                    }
+                });
+            }
+        );
+    </script>
+    @*jquery to change status of Blog*@
+
+    <script>
+        @*This will set parent comment id for comment fucntion*@
+        var parentCommentId = 0;
+        $('.reply-btn')
+            .click(function () {
+                parentCommentId = Number($(this).data("commentid"));
+
+                $('#commentFormLastRow').empty();
+                var selector = "#userNameComment_" + parentCommentId;
+
+                $('#commentFormLastRow').append('<span class="badge badge-pill badge-primary" id="reply-infor"><i class="fa-solid fa-reply"></i> ' + $(selector).text() + '</span >')
+            }
+        );
+
+        @*Use tooltips of bootstrap*@
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
+    </script>
+}
+
+
+
+@if (userLogined)
+{
+    <script>
+        @*Comment Method Ajax*@
+        $('#comment-btn').click(
+            function(){
+                var title = $('#commentTitle').val();
+                var commentContent = tinymce.get("Content").getContent();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("CommentPost", "PostComment")',
+                    data: {
+                        postId: @Model.PostId,
+                        title: title,
+                        content: commentContent,
+                        parentCommentId: parentCommentId
+                    },
+                    dataType: 'json',
+                    success: function (result) {
+                        $('#commentTitle').val('');
+                        tinymce.get("Content").setContent('');
+                        console.log(result);
+                        alert(result + "\n You might want to be refresh this page to see your comment!")
+                    },
+                    error: function (result) {
+                        alert(result);
+                    }
+                });
+            }
+        );
+
+        @*Vote Method Ajax*@
+        $('.radio-rate').click(
+            function (e){
+                var ID = @Model.PostId;
+                console.log(ID);
+                var score = Number($(this).val());
+                console.log(score);
+                $.ajax({
+                    type: "post",
+                    url: "@Url.Action("Voting","Vote")",
+                    data:{
+                        "postId": ID,
+                        "rate": score
+                    },
+                    success: function(result){
+                            alert(result);
+                    },
+                    error: function(result){
+                            alert(result);
+                    }
+                });
+            }
+        );
+
+        @*Delete Comment Method Ajax*@
+        $('.deleted-comment-btn').click(
+            function (e){
+                var commentIdtoDelete = Number($(this).data("deletecommentid"));
+                $.ajax({
+                    type: "post",
+                    url: "@Url.Action("DeleteComment","PostComment")",
+                    data:{
+                        "postCommentId": commentIdtoDelete
+                    },
+                    success: function(result){
+                            alert(result);
+                            var selector = "#comment_" + commentIdtoDelete;
+                            $(selector).hide();
+                    },
+                    error: function(result){
+                            alert(result);
+                    }
+                });
+            }
+        );
+
+        @*Unpublished Comment Method Ajax*@
+        $('.published-comment-btn').click(
+            function (e){
+                var commentIdtoPublished = Number($(this).data("publishedcommentid"));
+                $.ajax({
+                    type: "post",
+                    url: "@Url.Action("SwitchPublisedCommentStatus","PostComment")",
+                    data:{
+                        "postCommentId": commentIdtoPublished
+                    },
+                    success: function(result){
+                        var selector = "#comment_" + commentIdtoPublished;
+                        if(result == true)
+                        {
+                            alert("Your comment have been publised!");
+                            $(selector).css("opacity","1");
+                        }
+                        else{
+                            alert("Your comment have been unpublised!");
+                            $(selector).css("opacity","0.5");
+                        }
+
+                    },
+                    error: function(result){
+                            alert(result);
+                    }
+                });
+            }
+        );
+
+    </script>
+}
+else
+{
+    <script>
+        $('.radio-rate').click(document.location.href='~/Identity/Account/Login');
+    </script>   
+}
+
+@if (userLogined)
+{
+    if (Model.Votes.Any(s => s.UserId == userId))
+    {
+        byte rating = Model.Votes.Where(s => s.UserId == userId).First().Rate;
+        <script>
+            var starCheck = "star" + @rating;
+            document.getElementById(starCheck).checked = true;
+        </script>
+    }
+}
+
+@*This is method loop to show comment tree*@
+@{
+    //This is method loop to show comment tree
+    void ShowComments(ICollection<PostCommentVM> childComments)
+    {
+        foreach (PostCommentVM item in childComments)
+        {
+            if (!alreadyShowComments.Contains(item.PostCommentId.Value) && (item.Published || (item.UserId == userId && userLogined)))
+            {
+                //Set style for comment base on status: pubslished ? unpubslished
+                string style = "position: relative;";
+                if (item.UserId == userId && userLogined && item.Published == false)
+                {
+                    style = "position: relative; opacity: 0.5;";
+                }
+                //Set style for comment base on status: pubslished ? unpubslished
+
+
+                //Show an comment
+                <div class="media" style="@style" id="comment_@item.PostCommentId">
+                    <div class="align-self-start mr-3">
+                        @if (item.User.Avatar != null && item.User.Avatar.Length > 0)
+                        {
+                            <img src="data:image/*;base64,@(Convert.ToBase64String(item.User.Avatar))" 
+                                alt="Blogger avatar" 
+                                class="commented-user-avatar"
+                                style="width: 65px !important; height: 65px !important; object-fit: cover; border-radius: 100%;margin-top: 1em;">
+                        }
+
+                        else
+                        {
+                            <img src="../ImageDefault//UserAvatar/user_avatar_default.png" 
+                                alt="Blogger avatar" 
+                                class="commented-user-avatar"
+                                style="width: 65px !important; height: 65px !important; object-fit: cover; border-radius: 100%;margin-top: 1em;"/>
+                        }
+                    </div>
+                    <div class="media-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                @{
+                                    string fullUserName = $"{item.User.FirstName} {item.User.MiddleName} {item.User.LastName}";
+                                }
+                                <h5 class="text-primary" id="userNameComment_@item.PostCommentId">
+                                    @fullUserName
+                                </h5>
+                            </div>
+                            <div class="col-md-4 flex-column">
+
+                                <div class="comment-button-group">
+                                    @if (userLogined)
+                                    {
+                                        <a href="#section-title" class="btn btn-outline-info reply-btn" data-toggle="tooltip" data-placement="bottom" title="Reply this comment" data-commentId="@item.PostCommentId"><i class="fa-solid fa-reply"></i></a>
+                                    }
+                                    @if (userId == item.UserId && userLogined)
+                                    {
+                                        if (item.Published)
+                                        {
+                                            <button type="button" data-publishedCommentId="@item.PostCommentId" class="published-comment-btn btn btn-outline-danger" data-toggle="tooltip" data-placement="bottom" title="Unpublised this comment"><i class="fa-solid fa-eye-slash"></i></button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" data-publishedCommentId="@item.PostCommentId" class="published-comment-btn btn btn-outline-danger" data-toggle="tooltip" data-placement="bottom" title="Published this comment"><i class="fa-solid fa-eye"></i></button>
+                                        }
+                                        <button type="button" data-deleteCommentId="@item.PostCommentId" class="deleted-comment-btn btn btn-outline-danger" data-toggle="tooltip" data-placement="bottom" title="Delete this comment"><i class="fa-solid fa-trash-can"></i></button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-secondary">
+                            @item.PublishedAt?.ToShortDateString()
+                            at
+                            @item.PublishedAt?.ToShortTimeString()
+                        </span>
+                        <h5 class="mt-0">Title: @item.Title</h5>
+
+                        @Html.Raw(item.Content)
+
+                        @{
+                            alreadyShowComments.Add(item.PostCommentId.Value);
+                        }
+                        <div class="ml-2 mt-2 mb-2" style="margin-left: 3em;" id="child-comment-place_@item.PostCommentId">
+                            @{
+                                //If this comment has child(s), using recursion to show them
+                                ShowComments(Model.PostComments.Where(pc => pc.ParentId == item.PostCommentId).ToList());
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            }
+        }
+    }
+}
+

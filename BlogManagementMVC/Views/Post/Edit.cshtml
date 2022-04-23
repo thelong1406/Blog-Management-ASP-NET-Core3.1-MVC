@@ -1,0 +1,348 @@
+﻿@using DataAccess.Domain
+@using MapModels.ViewModels
+@model MapModels.ViewModels.PostVM.PostEditVM
+<!--TinyMCE config-->
+<script src="https://cdn.tiny.cloud/1/apriqfhqbc9aqsm8233qtq2pno04fgouj36ijdsr9nvhstqt/tinymce/5/jquery.tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/apriqfhqbc9aqsm8233qtq2pno04fgouj36ijdsr9nvhstqt/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+    tinymce.init({
+        selector: '#Content',
+        //skin_url: "../../Scripts/tinymce/skins/ui/KM LIBRARY",
+        //content_css: "../../Scripts/tinymce/skins/content/KM LIBRARY",
+        plugins: 'advlist anchor autolink autosave autoresize charmap code codesample directionality emoticons fullscreen help hr image imagetools importcss insertdatetime link lists media nonbreaking noneditable pagebreak paste preview print save searchreplace tabfocus table textpattern toc visualblocks visualchars wordcount',
+        toolbar: 'undo redo styleselect | bullist numlist | outdent indent | media table | forecolor backcolor | bold italic underline | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect ',
+        toolbar_mode: 'floating',
+        tinycomments_mode: 'embedded',
+        tinycomments_author: 'Author name',
+    });
+</script>
+<!--TinyMCE config-->
+@{
+    ViewData["Title"] = "Edit blog";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1 class="oleez-page-title wow fadeInUp">Create new blog post</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <span class="text-danger">
+                    @ViewBag.NotFound
+                    @ViewBag.ExceptionMessage
+                </span>
+                <input asp-for="PostId" class="form-control" hidden="hidden" />
+                <input asp-for="UserId" class="form-control" hidden="hidden" />
+
+                <div class="form-group">
+                    <label asp-for="Title" class="control-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="MetaTitle" class="control-label"></label>
+                            <input asp-for="MetaTitle" class="form-control" />
+                            <span asp-validation-for="MetaTitle" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Slug" class="control-label"></label>
+                            <input asp-for="Slug" class="form-control" />
+                            <span asp-validation-for="Slug" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Summary" class="control-label"></label>
+                    <input asp-for="Summary" class="form-control" />
+                    <span asp-validation-for="Summary" class="text-danger"></span>
+                </div>
+
+                <input class="form-check-input" asp-for="IsVideoPost" hidden="hidden" />
+                <input asp-for="CreatedAt" class="form-control" hidden="hidden" />
+                <input asp-for="UpdatedAt" class="form-control" hidden="hidden" />
+                <input asp-for="PublishedAt" class="form-control" hidden="hidden" />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="custom-control custom-checkbox">
+                            <input class="custom-control-input" asp-for="Published" />
+                            <label class="custom-control-label" for="Published">
+                                <span>Post with status: <span class="badge badge-success">Published</span> ?</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="custom-control custom-checkbox">
+                            <input class="custom-control-input" asp-for="IsDeleted" />
+                            <label class="custom-control-label" for="IsDeleted">
+                                <span>Post with status: <span class="badge badge-danger">Deleted</span> ?</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group mb-3 mt-3">
+                  <select class="custom-select" asp-for="ParentId" asp-items="ViewBag.ParrentPost">
+                    <option selected value="">Choose post parent... </option>
+                  </select>
+                  <div class="input-group-append">
+                    <label class="input-group-text" asp-for="ParentId">Parent Post</label>
+                  </div>
+                  <span asp-validation-for="ParentId" class="text-danger"></span>
+                </div>
+                <hr />
+                <br />
+                <div class="form-group">
+                    <label asp-for="Content" class="control-label"></label>
+                    <textarea asp-for="Content" class="form-control"></textarea>
+                    <span asp-validation-for="Content" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="MinutesSpentForReading" class="control-label"></label>
+                            <div class="input-group">
+                                <input asp-for="MinutesSpentForReading" class="form-control" type="number" />
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">minutes</div>
+                                </div>
+                            </div>
+
+                            <span asp-validation-for="MinutesSpentForReading" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label class="control-label">@Html.DisplayNameFor(model => model.Thumbnail)</label>
+                            <div class="custom-file">
+                                <label asp-for="Thumbnail" class="custom-file-label" for="Thumbnail">Choose file...</label>
+                                <input type="file"
+                                       accept=".png,.jpg,.jpeg,.gif,.tif"
+                                       asp-for="Thumbnail"
+                                       id="Thumbnail"
+                                       class="custom-file-input"
+                                       style="border:0px!important; padding: 0px;padding-top: 10px;padding-bottom: 30px;"
+                                       />
+                                <span asp-validation-for="Thumbnail" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <!--Preview-->
+                <div class="form-group">
+                    <h3 class="control-label">Preview</h3>
+                    <hr />
+                    <article class="blog-post wow fadeInUp">
+                        @if (Model.Thumbnail != null)
+                        {
+                            <img class="post-thumbnail"
+                             id="cover-thumbnail"
+                             style="width:100%; height:auto; object-fit:cover"
+                             src="data:image/*;base64,@(Convert.ToBase64String(Model.Thumbnail))">
+                        }
+                        else
+                        {
+                            <img class="post-thumbnail"
+                             id="cover-thumbnail"
+                             style="width:100%; height:auto; object-fit:cover"
+                             src="~/ImageDefault/BlogThumbnail/post_thumbnail_default.jpg">
+                        }
+                        <p class="post-date" id="createdAtDOM">@Html.DisplayFor(Model => Model.CreatedAt)</p>
+                        <h4 class="post-title" id="titleDOM">@Html.DisplayFor(Model => Model.Title)</h4>
+                        <p class="post-excerpt" id="summaryDOM">@Html.DisplayFor(Model => Model.Summary)</p>
+                        <p href="#!" class="post-permalink">READ MORE</p>
+                    </article>
+                    <hr />
+                </div>
+                <!--Preview-->
+
+                <!--Post's Categories Remove-->
+                <br />
+                <br />
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3 class="control-label">Post's categories</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-action="AddCategoriesForBlog" asp-controller="Post" asp-route-id="@Model.PostId" class="btn btn-outline-info float-right">Add more categories</a>
+                    </div>
+                </div>
+                <br />
+                <span class="text-secondary"><i>Click the <i class="fa-solid fa-xmark"></i> button to remove</i></span>
+                <div class="d-flex align-content-center flex-wrap">
+                    @foreach (PostCategoryVM item in Model.PostCategories)
+                    {
+                        <div class="card m-2" id="category_@item.CategoryId">
+                            <div class="card-body rounded">
+                                <span>@item.Category.Title</span>
+                                <button type="button" class="categories-delete-btn btn btn-light" data-categoryId="@item.CategoryId"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <br />
+                <br />
+
+
+                <!--Post's Tags Remove-->
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3 class="control-label">Post's tags</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-action="AddTagsForBlog" asp-controller="Post" asp-route-id="@Model.PostId" class="btn btn-outline-info float-right">Add more tags</a>
+                    </div>
+                </div>
+                <br />
+                <span class="text-secondary"><i>Click the <i class="fa-solid fa-xmark"></i> button to remove</i></span>
+                <div class="d-flex align-content-center flex-wrap">
+                    @foreach (PostTagVM item in Model.PostTags)
+                    {
+                        <div class="card m-2" id="tag_@item.TagId">
+                            <div class="card-body rounded">
+                                <span>@item.Tag.Title</span>
+                                <button type="button" class="tags-delete-btn btn btn-light" data-tagId="@item.TagId"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <br />
+                <br />
+
+
+                <!--Post's Meta Remove-->
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3 class="control-label">Post's metas</h3>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-action="AddMetasForBlog" asp-controller="Post" asp-route-id="@Model.PostId" class="btn btn-outline-info float-right">Add more metadatas</a>
+                    </div>
+                </div>
+                <br />
+                <span class="text-secondary"><i>Click the <i class="fa-solid fa-xmark"></i> button to remove</i></span>
+                <div class="d-flex align-content-center flex-wrap">
+                    @foreach (PostMetaVM item in Model.PostMetas)
+                    {
+                        <div class="card m-2" id="meta_@item.Id">
+                            <div class="card-body rounded">
+                                <span>@item.Key</span>
+                                <button type="button" class="metas-delete-btn btn btn-light" data-metaId="@item.Id"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <br />
+                <br />
+                <div class="form-group">
+                    <input type="submit" value="Save Changes!" class="btn btn-primary btn-lg btn-block" />
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg btn-block">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section scripts{
+    <script>
+
+    //          DOM the element for preview
+    $('#Title').on('change', function() {
+       console.log('title changed');
+      document.getElementById('titleDOM').innerHTML = this.value;
+    });
+
+    $('#Summary').on('change', function() {
+       console.log('summary changed');
+      document.getElementById('summaryDOM').innerHTML = this.value;
+    });
+
+    $('#Thumbnail').on('change', function(){
+        document.getElementById('cover-thumbnail').src = window.URL.createObjectURL(this.files[0])
+    });
+
+
+    ///         AJAX FUNCTION
+
+    //Remove tag
+    $('.tags-delete-btn').click(
+        function(){
+            var tagIdToDelete = Number($(this).data("tagid"));
+            $.ajax({
+                type: "post",
+                url: '@Url.Action("RemoveTagOfPost", "Post")',
+                data:{
+                    "postId": @Model.PostId,
+                    "tagId": tagIdToDelete
+                },
+                success: function(result){
+                        alert(result);
+                        var selector = "#tag_" + tagIdToDelete;
+                        $(selector).hide();
+                },
+                error: function(result){
+                        alert(result);
+                }
+            });
+        }
+    );
+
+    //Remove category
+    $('.categories-delete-btn').click(
+        function(){
+            var categoryIdToDelete = Number($(this).data("categoryid"));
+            $.ajax({
+                type: "post",
+                url: '@Url.Action("RemoveCategoryOfPost", "Post")',
+                data:{
+                    "postId": @Model.PostId,
+                    "categoryId": categoryIdToDelete
+                },
+                success: function(result){
+                        alert(result);
+                        var selector = "#category_" + categoryIdToDelete;
+                        $(selector).hide();
+                },
+                error: function(result){
+                        alert(result);
+                }
+            });
+        }
+    );
+
+
+    //Remove meta
+    $('.metas-delete-btn').click(
+        function(){
+            var metaIdToDelete = Number($(this).data("metaid"));
+            $.ajax({
+                type: "post",
+                url: '@Url.Action("RemoveMetaOfPost", "Post")',
+                data:{
+                    "postId": @Model.PostId,
+                    "id": metaIdToDelete
+                },
+                success: function(result){
+                    alert(result);
+                    var selector = "#meta_" + metaIdToDelete;
+                    $(selector).hide();
+                },
+                error: function(result){
+                    alert(result);
+                }
+            });
+        }
+    );
+
+</script>
+}
+

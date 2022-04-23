@@ -1,0 +1,152 @@
+﻿@{
+    ViewData["Title"] = "Add metadatas for blog";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h1 class="oleez-page-title wow fadeInUp">Select new post's metadata</h1>
+    <div class="row">
+        <div class="col-md-12">
+            @if (ViewBag.ExceptionDetail != null)
+            {
+                    <span class="text-danger">@ViewBag.ExceptionDetail</span>
+            }
+
+            <table id="tblMetadatas" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="pl-2 pr-2 text-center" >Metadata Key</th>
+                        <th class="pl-2 pr-2 text-center">Metadata Content</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                            <tr>
+                                <td><input type="text" id="Key" name="Key" maxlength="50" class="form-control"/></td>
+                                <td><input type="text" id="Content" name="Content" class="form-control"/></td>
+                                <td><input type="button" id="btnAdd" class="btn btn-outline-purple" value="Add this"/></td>
+                            </tr>
+                </tfoot>
+            </table>
+             <br/>
+            <div class="form-group">
+                <input type="button" id="btnSave" class="btn btn-primary btn-lg btn-block" value="Add these metadata!"/>
+                <a class="btn btn-outline-dark btn-lg btn-block" asp-action="Details" asp-controller="Post" asp-route-postId="@ViewBag.PostId">Skip</a>
+            </div>
+        </div>
+    </div>
+</div>
+<form asp-action="AddMetasForBlog" asp-controller="Post" method="post" id="FormMetas" hidden="hidden">
+    <input type="number" id="id" name="id" value="@ViewBag.PostId" hidden="hidden" />
+    <!--dom here-->
+</form>
+
+
+@section scripts{
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+    <script type="text/javascript">
+        $("body").on("click", "#btnAdd", function () {
+            //Reference the Name and Country TextBoxes.
+            var Key = $("#Key");
+            var Content = $("#Content");
+
+            //Get the reference of the Table's TBODY element.
+            var tBody = $("#tblMetadatas > TBODY")[0];
+
+            //Add Row.
+            var row = tBody.insertRow(-1);
+
+            //Add Key cell.
+            var cell = $(row.insertCell(-1));
+            cell.html(Key.val());
+
+            //Add Contnet cell.
+            cell = $(row.insertCell(-1));
+            cell.html(Content.val());
+
+            //Add Button cell.
+            cell = $(row.insertCell(-1));
+            var btnRemove = $("<input />");
+            btnRemove.attr("type", "button");
+            btnRemove.attr("onclick", "Remove(this);");
+            btnRemove.val("Remove");
+            cell.append(btnRemove);
+
+            //Clear the TextBoxes.
+            Key.val("");
+            Content.val("");
+        });
+
+        function Remove(button) {
+            //Determine the reference of the Row using the Button.
+            var row = $(button).closest("TR");
+            var name = $("TD", row).eq(0).html();
+            if (confirm("Do you want to delete: " + name)) {
+                //Get the reference of the Table.
+                var table = $("#tblMetadatas")[0];
+
+                //Delete the Table row using it's Index.
+                table.deleteRow(row[0].rowIndex);
+            }
+        };
+
+        $("body").on("click", "#btnSave", function () {
+            //Loop through the Table rows and build a JSON array.
+            //var customers = new Array();
+            $("#tblMetadatas tbody tr").each(function () {
+                var row = $(this);
+
+                $('#FormMetas').append("<input id='keys' name ='keys' value=" + row.find("td").eq(0).html() + " hidden='hidden' type='text' />");
+                $('#FormMetas').append("<input id='contents' name ='contents' value=" + row.find("td").eq(1).html() + " hidden='hidden' type='text' />");
+            });
+
+            $('#FormMetas').submit();
+
+            //Send the JSON array to Controller using AJAX.
+            //$.ajax({
+            //    type: "POST",
+            //    url: "/post/addmetasforblog",
+            //    data: {
+            //        "id": @ViewBag.PostId,
+            //        "keys": keys,
+            //        "contents": contents
+            //    },
+            //    contentType: "application/json; charset=utf-8",
+            //    dataType: "json",
+            //    success: function (r) {
+            //        if(r == -1 || r == 201){
+            //            document.location.href = "/post/details?postId=" + @ViewBag.PostId;
+            //        }
+            //        else if(r == 403){
+            //            document.location.href = "/home/error?requestId=403";
+            //        }
+            //        else 
+            //        {
+            //            alert("Internal Server get an exception!");
+            //            console.log(r);
+            //        }
+            //    },
+            //    error: function(){
+            //        alert("Something when wrong!");
+            //    }
+            //});
+        });
+    </script>
+}
+
+@*<script>
+    $('#submit-btn')
+    .click(function(e){
+        $("input:checkbox[type=checkbox]:checked")
+            .each(function()
+            {
+            $('#AddCategoriesForm')
+                .append("<input id='categoriesId' name ='categoriesId' value=" + Number($(this).val()) + " hidden='hidden' type='number' />");
+            console.log(Number($(this).val()));
+            }); //End each
+        $('#AddCategoriesForm').submit();
+    });
+</script>*@

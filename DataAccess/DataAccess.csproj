@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20220405141248_FirstMigration.cs" />
+    <Compile Remove="Migrations\20220405141248_FirstMigration.Designer.cs" />
+    <Compile Remove="Migrations\20220405194550_SeedExampleData.cs" />
+    <Compile Remove="Migrations\20220405194550_SeedExampleData.Designer.cs" />
+    <Compile Remove="Migrations\20220405195049_SeedExampleData.cs" />
+    <Compile Remove="Migrations\20220405195049_SeedExampleData.Designer.cs" />
+    <Compile Remove="Migrations\20220405203036_Initial.cs" />
+    <Compile Remove="Migrations\20220405203036_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20220407171109_AddThumbnailAndSomeThing.cs" />
+    <Compile Remove="Migrations\20220407171109_AddThumbnailAndSomeThing.Designer.cs" />
+    <Compile Remove="Migrations\20220407171952_Initial.cs" />
+    <Compile Remove="Migrations\20220407171952_Initial.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.23" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.23" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.23" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.23" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.23">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,169 @@
+﻿@model MapModels.ViewModels.CategoryVM
+
+@{
+    ViewData["Title"] = "Category Detail";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-7 align-self-center">
+            <h3 class="page-title text-truncate text-dark font-weight-medium mb-1">Category</h3>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0 p-0">
+                        <li class="breadcrumb-item">
+                            <a href="dashboard.html" class="text-muted">Details</a>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Id)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ParentCategory)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ParentCategory.Title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.MetaTitle)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.MetaTitle)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Slug)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Slug)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Content)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Content)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.IsDeleted)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.IsDeleted)
+            {
+                <span class="badge badge-secondary">Unpublished</span>
+            }
+            else
+            {
+                <span class="badge badge-success">Published</span>
+            }
+        </dd>
+    </dl>
+
+</div>
+<div>
+    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@Model.Id"><i class="fas fa-pencil-alt"></i></a>
+    <a asp-action="Create" asp-route-parentId="@Model.Id"> class="btn btn-outline-success">Create Sub Category</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+</div>
+<hr />
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-7 align-self-center">
+            <h3 class="page-title text-truncate text-dark font-weight-medium mb-1">Sub categories</h3>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0 p-0">
+                        <li class="breadcrumb-item">
+                            <a href="dashboard.html" class="text-muted">List</a>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ParentCategory)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MetaTitle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Slug)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Content)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsDeleted)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ChildCategories)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ParentCategory.Title)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Title)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MetaTitle)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Slug)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Content)
+                </td>
+                <td>
+                    @if (item.IsDeleted)
+                    {
+                        <span class="badge badge-secondary">Unpublished</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-success">Published</span>
+                    }
+                </td>
+                <td>
+                    <a class="btn btn-outline-success" asp-action="Create" asp-route-parentId="@item.Id"><i class="mr-2 mdi mdi-plus"></i></a>
+                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="fas fa-pencil-alt"></i></a>
+                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"> <i class="fas fa-info-circle"></i> </a>
+                    <button class="btn btn-outline-danger deleteBtn" type="button" data-Id="@item.Id"><i class="far fa-trash-alt"></i></button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

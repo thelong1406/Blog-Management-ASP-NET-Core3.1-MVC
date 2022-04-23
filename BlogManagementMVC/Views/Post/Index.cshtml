@@ -1,0 +1,228 @@
+﻿@model PaginatedList<MapModels.ViewModels.PostVM.ListPostsVM>
+@using Microsoft.AspNetCore.Identity
+@using DataAccess.Domain
+@using Common.Constants
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@{
+    ViewData["Title"] = "Post";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    bool userLogined = SignInManager.IsSignedIn(User);
+    bool adminLogined = await UserManager.IsInRoleAsync(UserManager.GetUserAsync(User).Result, Roles.Administrator);
+    string userId = userLogined ? UserManager.GetUserAsync(User).Result.Id : "";
+}
+<main class="blog-standard">
+    <div class="container">
+        <h1 class="oleez-page-title wow fadeInUp">Blog Posts</h1>
+        <div class="row">
+            <div class="col-md-8 blog-post-wrapper">
+                <span class="text-secondary">@ViewBag.NoResult</span>
+                @foreach (var item in Model)
+                {
+                        <!--Blog post-->
+                        <article class="blog-post wow fadeInUp">
+                            <img src="data:image/*;base64,@(Convert.ToBase64String(item.Thumbnail))" alt="blog post" class="post-thumbnail">
+                            <p class="post-date">@Html.DisplayFor(modelItem => item.CreatedAt)</p>
+                            <h4 class="post-title">@Html.DisplayFor(modelItem => item.Title)</h4>
+                            <p class="post-excerpt">@Html.DisplayFor(modelItem => item.Summary)</p>
+                            <a href="@Url.Action("Details","Post", new{postId = item.PostId})" class="post-permalink">READ MORE</a>
+                            @if ((userLogined && userId == item.UserId) || adminLogined)
+                            {
+                                if (item.Published)
+                                {
+                                    <span class="badge badge-success">Published</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">Unpublished</span>
+                                }
+
+                                if (item.IsDeleted)
+                                {
+                                    <span class="badge badge-danger">Deleted</span>
+                                }
+
+                                <a
+                                class="btn btn-outline-secondary m-1"
+                                asp-action="Create"
+                                asp-route-parentId="@item.PostId"
+                                data-toggle="tooltip"
+                                data-placement="left"
+                                title="Add sub blog">
+                                    <i class="fa-solid fa-plus"></i>
+                                </a>
+                    
+                                <a
+                                class="btn btn-outline-secondary m-1"
+                                asp-action="Edit"
+                                asp-route-id="@item.PostId"
+                                data-toggle="tooltip"
+                                data-placement="left"
+                                title="Edit this blog">
+                                    <i class="fa-solid fa-file-pen"></i>
+                                </a>
+                            }
+                    </article>
+                }
+                @{
+                    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                }
+                <div class="post-navigation wow fadeInUp">
+                    <a asp-action="Index"
+                        asp-route-sortOrder="@ViewData["CurrentSort"]"
+                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                       asp-route-startDate="@ViewData["StartDate"]"
+                       asp-route-endDate="@ViewData["EndDate"]"
+                       asp-route-categoryId="@ViewData["Category"]"
+                       asp-route-isMyBlogs="@ViewData["IsMyBlogs"]"
+                       asp-route-pageSize="@ViewData["PageSize"]"
+                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                       class="btn prev-post @prevDisabled">
+                        Previous
+                    </a>
+
+                    <a asp-action="Index"
+                       asp-route-sortOrder="@ViewData["CurrentSort"]"
+                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                       asp-route-startDate="@ViewData["StartDate"]"
+                       asp-route-endDate="@ViewData["EndDate"]"
+                       asp-route-categoryId="@ViewData["Category"]"
+                       asp-route-isMyBlogs="@ViewData["IsMyBlogs"]"
+                       asp-route-pageSize="@ViewData["PageSize"]"
+                       asp-route-searchString="@ViewData["CurrentFilter"]"
+                       class="btn next-post @nextDisabled">
+                        Next
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="sidebar-widget wow fadeInUp">
+                    <!--Social-->
+                    <h5 class="widget-title">Share</h5>
+                    <div class="widget-content">
+                        <nav class="social-links">
+                            <a href="#!">Fb</a>
+                            <a href="#!">Tw</a>
+                            <a href="#!">In</a>
+                            <a href="#!">Be</a>
+                        </nav>
+                    </div>
+                </div>
+                <!--Tag => Filter-->
+                <div class="sidebar-widget wow fadeInUp">
+                    <h5 class="widget-title">Category filter</h5>
+                    <div class="widget-content">
+                        @foreach (CategoryVM item in (List<CategoryVM>)ViewBag.CategoriesSelect)
+                        {
+                            if (ViewBag.Category == item.Id)
+                            {
+                                        <button class="post-tag category-filter-btn btn btn-dark pointer-event text-light" data-cateid="@item.Id">@item.Title</button>
+                            }
+                            else
+                            {
+                                        <button class="post-tag category-filter-btn pointer-event btn" data-cateid="@item.Id">@item.Title</button>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="sidebar-widget wow fadeInUp">
+                    <h5>Time Filter</h5>
+                    <form method="get" asp-action="Index" asp-controller="Post" id="search-form">
+                        <input type="number" value="@ViewBag.Category" id="categoryId" name ="categoryId" hidden="hidden" />
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="startDate" name="">From date</span>
+                            </div>
+                            @if (ViewBag.StartDate != null)
+                            {
+                                    <input type="date"
+                                   class="form-control"
+                                   placeholder="Username"
+                                   id="startDate"
+                                   name="startDate"
+                                   aria-describedby="Start date filter"
+                                   value="@ViewBag.StartDate.ToString("yyyy-MM-dd")">
+                            }
+                            else
+                            {
+                                    <input type="date"
+                                   class="form-control"
+                                   placeholder="Username"
+                                   id="startDate"
+                                   name="startDate"
+                                   aria-describedby="Start date filter">
+                            }
+
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="endDate" name="">To date</span>
+                            </div>
+                            @if (ViewBag.EndDate != null)
+                            {
+                                    <input type="date"
+                                   class="form-control"
+                                   placeholder="Username"
+                                   id="endDate"
+                                   name="endDate"
+                                   value="@ViewBag.EndDate.ToString("yyyy-MM-dd")"
+                                   aria-describedby="Start date filter">
+                            }
+                            else
+                            {
+                                    <input type="date"
+                                   class="form-control"
+                                   placeholder="Username"
+                                   id="endDate"
+                                   name="endDate"
+                                   aria-describedby="Start date filter">
+                            }
+                        </div>
+                        <div class="sidebar-widget wow fadeInUp">
+                            <h5>Time Filter</h5>
+                            <div class="input-group mb-3">
+                              <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">Page size</span>
+                              </div>
+                              <input type="number" id="pageSize" name="pageSize" value="@ViewBag.PageSize" class="form-control" placeholder="Number of blogs to display" aria-label="" aria-describedby="basic-addon1" min="0" max="30">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Apply & search</button>
+                        </div>
+                    </form>
+                </div>
+
+                @*                <div class="sidebar-widget wow fadeInUp">
+                    <h5 class="widget-title">Categories</h5>
+                    <div class="widget-content">
+                    <ul class="category-list">
+                    <li><a href="#!">Animation</a></li>
+                    <li><a href="#!">Branding</a></li>
+                    <li><a href="#!">Graphic Design</a></li>
+                    <li><a href="#!">Photography</a></li>
+                    <li><a href="#!">Web Developing</a></li>
+                    </ul>
+                    </div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+</main>
+@section scripts{
+    <script>
+    $('.category-filter-btn').click(
+        function(e){
+            var cateId = Number($(this).data("cateid"));
+            $('#categoryId').val(cateId);
+            console.log(cateId);
+            $('#search-form').submit();
+    });
+</script>
+}
+

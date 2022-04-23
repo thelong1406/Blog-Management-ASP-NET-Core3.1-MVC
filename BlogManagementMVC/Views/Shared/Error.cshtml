@@ -1,0 +1,18 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<h1 class="text-danger">Error.</h1>
+<h2 class="text-danger">An error occurred while processing your request.</h2>
+
+
+<main class="error-page">
+    <div class="container">
+        @if (Model.ShowRequestId)
+        {
+            <h1 class="error-code wow fadeInUp">@Model.RequestId</h1>
+        }
+        <p class="error-description wow fadeInUp">Oops! The page you are looking for does not exist. It might have been removed or deleted. Go back to home page now, or stay, it is quiet out here.</p>
+    </div>
+</main>

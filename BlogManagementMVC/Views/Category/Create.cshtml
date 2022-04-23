@@ -1,0 +1,89 @@
+﻿@model MapModels.ViewModels.CategoryVM
+<!--TinyMCE config-->
+<script src="https://cdn.tiny.cloud/1/apriqfhqbc9aqsm8233qtq2pno04fgouj36ijdsr9nvhstqt/tinymce/5/jquery.tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/apriqfhqbc9aqsm8233qtq2pno04fgouj36ijdsr9nvhstqt/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+
+<script>
+    tinymce.init({
+        selector: '#Content',
+        //skin_url: "../../Scripts/tinymce/skins/ui/KM LIBRARY",
+        //content_css: "../../Scripts/tinymce/skins/content/KM LIBRARY",
+        plugins: 'advlist anchor autolink autosave autoresize charmap code codesample directionality emoticons fullscreen help hr image imagetools importcss insertdatetime link lists media nonbreaking noneditable pagebreak paste preview print save searchreplace tabfocus table textpattern toc visualblocks visualchars wordcount',
+        toolbar: 'undo redo styleselect | bullist numlist | outdent indent | media table | forecolor backcolor | bold italic underline | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect ',
+        toolbar_mode: 'floating',
+        tinycomments_mode: 'embedded',
+        tinycomments_author: 'Author name',
+    });
+</script>
+<!--TinyMCE config-->
+
+@{
+    ViewData["Title"] = "Category create";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-7 align-self-center">
+            <h3 class="page-title text-truncate text-dark font-weight-medium mb-1">Category</h3>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb m-0 p-0">
+                        <li class="breadcrumb-item">
+                            <a href="dashboard.html" class="text-muted">Create</a>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-10">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger">
+                
+            </div>
+            <span class="text-danger">@ViewBag.NotFound @ViewBag.ExceptionMessage</span>
+@*                <input asp-for="Id" class="form-control" hidden="hidden" />*@
+            <input asp-for="ParentId" class="form-control" hidden="hidden" />
+
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MetaTitle" class="control-label"></label>
+                <input asp-for="MetaTitle" class="form-control" />
+                <span asp-validation-for="MetaTitle" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Slug" class="control-label"></label>
+                <input asp-for="Slug" class="form-control" />
+                <span asp-validation-for="Slug" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Content" class="control-label"></label>
+                <textarea asp-for="Content" class="form-control"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <div class="custom-control custom-checkbox">
+                    <input class="custom-control-input" asp-for="IsDeleted" />
+                    <label class="custom-control-label" for="IsDeleted">
+                        <span>Post with status: <span class="badge badge-secondary">Unpublished</span> ?</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+ <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+
+

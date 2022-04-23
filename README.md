@@ -17,7 +17,9 @@ In this project, I have
 
 - Used `AutoMapper` to convert data model and view model
 
-Ok, that's it.
+- Database of this project base on [this sample](https://mysql.tutorials24x7.com/blog/guide-to-design-a-database-for-blog-management-in-mysql).
+
+Ok, that's it. :+1:
 
 >**This is not a completed project, some logic is wrong in the real world.**
 
@@ -30,9 +32,9 @@ Ok, that's it.
   - Choose project `DataAccess`
   - Type command: `Update-Database`
 - If you want a faster way to have data in database. You can ignore step Migration above.
-Just restore database by file: `~/BlogManagementMVC.bak` in SSMS (SQL Server Management Tool). 
+Just restoring database by file: `~/BlogManagementMVC.bak` in SSMS (SQL Server Management Tool). 
 Make sure your database name in `appsettings.json` matched with the database you named in SQL server. 
-Then just run the app. 
+Then, let's run the app. 
 
 ## Notices
 - My code use .NET Core version 3.1. 

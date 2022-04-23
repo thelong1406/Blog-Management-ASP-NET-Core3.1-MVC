@@ -29,10 +29,10 @@ Ok, that's it.
   - Open solution in Visual Studio, open `Package Manager Tool` 
   - Choose project `DataAccess`
   - Type command: `Update-Database`
-- If you want a faster way to have data in database. 
+- If you want a faster way to have data in database. You can ignore step Migration above.
 Just restore database by file: `~/BlogManagementMVC.bak` in SSMS (SQL Server Management Tool). 
 Make sure your database name in `appsettings.json` matched with the database you named in SQL server. 
-Then just run the app.
+Then just run the app. 
 
 ## Notices
 - My code use .NET Core version 3.1. 
